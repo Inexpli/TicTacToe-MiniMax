@@ -1,3 +1,4 @@
+# libraries
 import csv
 import math
 import random
@@ -31,7 +32,9 @@ for x in range (3):
     row = [0] * 3
     markers.append(row)
 
+# function to draw the game board
 def draw_board():
+    # background and grid colors
     bg = (51, 51, 204)
     grid = (0, 204, 255)
     screen.fill(bg)
@@ -39,6 +42,7 @@ def draw_board():
         pygame.draw.line(screen, grid, (0, 300 * x), (screen_width, 300 * x), line_width)
         pygame.draw.line(screen, grid, (300 * x, 0), (300 * x, screen_height), line_width)
 
+# function to draw the markers (X and O)
 def draw_markers():
     x_pos = 0
     for x in markers:
@@ -52,6 +56,7 @@ def draw_markers():
             y_pos += 1
         x_pos += 1	
 
+# checks if there are empty squares
 def num_empty_squares(markers):
     empty = 0
     for row in markers:
@@ -60,6 +65,7 @@ def num_empty_squares(markers):
                 empty += 1
     return empty
 
+# checks if there are available moves
 def available_moves(markers):
     moves = []
     for i, row in enumerate(markers):
@@ -68,12 +74,14 @@ def available_moves(markers):
                 moves.append((i, j))
     return moves
 
+# makes a move
 def make_move(markers, i, j, letter):
     if markers[i][j] == 0:
         markers[i][j] = letter
         return True
     return False
 
+# checks if there are horizontally/vertically/diagonally setted up markers
 def check_game_over(markers):
     for x in markers:
         if sum(x) == 3:
@@ -97,6 +105,7 @@ def check_game_over(markers):
 
     return None
 
+# function to draw the game over screen
 def draw_game_over(winner):
     if winner != 0:
         end_text = "Player " + str(winner) + " wins!"
@@ -112,6 +121,7 @@ def draw_game_over(winner):
     pygame.draw.rect(screen, (0, 0, 0), again_rect)
     screen.blit(again_img, (screen_width // 2 - 80, screen_height // 2 + 10))
 
+# function implementing the minimax algorithm
 def minimax(markers, player):
     max_player = 1
     other_player = -1 if player == 1 else 1
@@ -142,6 +152,7 @@ def minimax(markers, player):
                 best = sim_score
     return best
 
+# function to generate a move for the computer player
 def generate_move(markers, player):
     if len(available_moves(markers)) == 9:
         square = random.choice(available_moves(markers))
@@ -149,6 +160,7 @@ def generate_move(markers, player):
         square = minimax(markers, player)['position']
     return square
 
+# main function controlling the game logic
 def game():
     global game_over, winner, markers, clicked
     #main loop
