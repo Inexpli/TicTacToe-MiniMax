@@ -21,9 +21,9 @@ font = pygame.font.SysFont(None, 40)
 clicked = False
 pos = (0,0)
 markers = []
+sim_board = []
 game_over = False
 winner = 0
-global markers_count
 
 # setup a rectangle for "Play Again" Option
 again_rect = Rect(screen_width // 2 - 80, screen_height // 2, 160, 50)
@@ -55,6 +55,9 @@ def draw_markers():
                 pygame.draw.circle(screen, (255, 255, 255), (x_pos * 300 + 150, y_pos * 300 + 150), 90, 7)
             y_pos += 1
         x_pos += 1	
+
+def cell_number(cell_x, cell_y):
+    return cell_x * 3 + cell_y + 1
 
 # prints out game over
 def draw_game_over(winner):
@@ -115,40 +118,41 @@ def check_game_over():
             game_over = True
             winner = 0
 
+
 # saves the course of the game
 def write_to_csv():
+    global sim_board, winner
     with open('tictactoe.csv', 'a', newline='') as csvfile:
         fieldnames = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Winner']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        z = 1
-        row_data = {}
-        for i in range(3):
-            for j in range(3):
-                row_data[str(z)] = markers[j][i]
-                z += 1
-        row_data['Winner'] = winner
-        writer.writerow(row_data)
+
+        # Check if sim_board has any moves and if winner is assigned
+        if sim_board and winner != 0:
+            row_data = {}
+            for i, cell in enumerate(sim_board[:9]):
+                row_data[str(i + 1)] = cell
+            row_data['Winner'] = winner
+            writer.writerow(row_data)
+
+        # Reset sim_board after writing to CSV
+        sim_board = []
+
 
 # generates move randomly
 def generate_move(player):
-    posx = random.randint(1, 800)
-    posy = random.randint(1, 800)
-    markers_count = 0
+    posx = random.randint(1, 800) -1 
+    posy = random.randint(1, 800) -1
     cell_x = posx // 300
     cell_y = posy // 300
     
     if markers[cell_x][cell_y] == 0:
         markers[cell_x][cell_y] = player
+        cell_num = cell_number(cell_x, cell_y)
+        sim_board.append(cell_num)
     elif (markers[cell_x][cell_y] == -1) or (markers[cell_x][cell_y] == 1):
         generate_move(player)
-
-    for x in markers:
-        for y in x:
-            if y == 1:
-                markers_count += 1
-
-    if markers_count >= 3:
-        check_game_over()
+    
+    check_game_over()
 
 # defines which player starts first (X or O)
 # X: 1
@@ -188,6 +192,8 @@ def simulate_game(games_count = 1000):
         if game_over == True:
             write_to_csv()
             i+=1
+            for number in sim_board:
+                print(number)
             # reset variables
             game_over = False
             player = 1
@@ -202,60 +208,4 @@ def simulate_game(games_count = 1000):
 
     pygame.quit()
 
-# function to call normal game between two players
-def game():
-    global game_over, player, winner, markers, clicked
-    #main loop
-    run = True
-    while run:
-        #draw board and markers first
-        draw_board()
-        draw_markers()
-
-        #handle events
-        for event in pygame.event.get():
-            #handle game exit
-            if event.type == pygame.QUIT:
-                run = False
-            #run new game
-            if game_over == False:
-                #check for mouseclick
-                if event.type == pygame.MOUSEBUTTONDOWN and clicked == False:
-                    clicked = True
-                if event.type == pygame.MOUSEBUTTONUP and clicked == True:
-                    clicked = False
-                    pos = pygame.mouse.get_pos()
-                    cell_x = pos[0] // 300
-                    cell_y = pos[1] // 300
-                    if markers[cell_x][cell_y] == 0:
-                        markers[cell_x][cell_y] = player
-                        player *= -1
-                        check_game_over()
-
-        #check if game has been won
-        if game_over == True:
-            draw_game_over(winner)
-            #check for mouseclick to see if we clicked on Play Again
-            if event.type == pygame.MOUSEBUTTONDOWN and clicked == False:
-                clicked = True
-            if event.type == pygame.MOUSEBUTTONUP and clicked == True:
-                clicked = False
-                pos = pygame.mouse.get_pos()
-                if again_rect.collidepoint(pos):
-                    #reset variables
-                    game_over = False
-                    player = 1
-                    pos = (0,0)
-                    markers = []
-                    winner = 0
-                    #create empty 3 x 3 list to represent the grid
-                    for x in range (3):
-                        row = [0] * 3
-                        markers.append(row)
-
-        #update display
-        pygame.display.update()
-
-    pygame.quit()
-
-simulate_game(100)
+simulate_game(5)
