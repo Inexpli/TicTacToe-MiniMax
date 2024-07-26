@@ -1,1 +1,1 @@
-# TicTacToe-AI
+# TicTacToe-MiniMax
